@@ -55,7 +55,7 @@ def convert_example(tokenizer,
             pos, = np.where(np.ones_like(tgt_ids))
             np.random.shuffle(pos)
             pos = pos[:int(noise_prob * len(pos))]
-            tgt_ids[pos, ] = noice_ids[pos, ]
+            tgt_ids[pos,] = noice_ids[pos,]
         else:
             tgt_labels = tgt_ids
 

@@ -33,14 +33,17 @@ from decode import beam_search_infilling, post_process, greedy_search_infilling
 
 # yapf: disable
 parser = argparse.ArgumentParser('seq2seq model with ERNIE-GEN')
-parser.add_argument("--model_name_or_path", default=None, type=str, required=True, help="Path to pre-trained model or shortcut name selected in the list: "+ ", ".join(list(ErnieTokenizer.pretrained_init_configuration.keys())))
+parser.add_argument("--model_name_or_path", default=None, type=str, required=True,
+                    help="Path to pre-trained model or shortcut name selected in the list: " + ", ".join(
+                        list(ErnieTokenizer.pretrained_init_configuration.keys())))
 parser.add_argument('--max_encode_len', type=int, default=24, help="The max encoding sentence length")
 parser.add_argument('--max_decode_len', type=int, default=72, help="The max decoding sentence length")
 parser.add_argument("--batch_size", default=50, type=int, help="Batch size per GPU/CPU for training.", )
 parser.add_argument('--beam_width', type=int, default=3, help="Beam search width")
 parser.add_argument('--length_penalty', type=float, default=1.0, help="The length penalty during decoding")
 parser.add_argument('--init_checkpoint', type=str, default=None, help='Checkpoint to warm start from')
-parser.add_argument("--device", default="gpu", type=str, choices=["cpu", "gpu", "xpu"] ,help="The device to select to train the model, is must be cpu/gpu/xpu.")
+parser.add_argument("--device", default="gpu", type=str, choices=["cpu", "gpu", "xpu"],
+                    help="The device to select to train the model, is must be cpu/gpu/xpu.")
 # yapf: enable
 
 args = parser.parse_args()

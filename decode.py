@@ -34,16 +34,16 @@ def gen_bias(encoder_inputs, decoder_inputs, step):
     decoder_bias = paddle.cast(
         (paddle.matmul(
             attn_bias, 1. / attn_bias, transpose_y=True) >= 1.),
-        'float32')  #[1, decoderlen, decoderlen]
+        'float32')  # [1, decoderlen, decoderlen]
     encoder_bias = paddle.unsqueeze(
         paddle.cast(paddle.ones_like(encoder_inputs), 'float32'),
-        [1])  #[bsz, 1, encoderlen]
+        [1])  # [bsz, 1, encoderlen]
     encoder_bias = paddle.expand(
         encoder_bias, [encoder_bsz, decoder_seqlen,
-                       encoder_seqlen])  #[bsz,decoderlen, encoderlen]
+                       encoder_seqlen])  # [bsz,decoderlen, encoderlen]
     decoder_bias = paddle.expand(
         decoder_bias, [decoder_bsz, decoder_seqlen,
-                       decoder_seqlen])  #[bsz, decoderlen, decoderlen]
+                       decoder_seqlen])  # [bsz, decoderlen, decoderlen]
     if step > 0:
         bias = paddle.concat([
             encoder_bias, paddle.ones([decoder_bsz, decoder_seqlen, step],
@@ -140,7 +140,7 @@ def log_softmax(x):
 def mask_prob(p, onehot_eos, finished):
     is_finished = paddle.cast(paddle.reshape(finished, [-1, 1]) != 0, 'float32')
     p = is_finished * (1. - paddle.cast(onehot_eos, 'float32')) * -9999. + (
-        1. - is_finished) * p
+            1. - is_finished) * p
     return p
 
 
@@ -157,15 +157,15 @@ def beam_search_step(state, logits, eos_id, beam_width, is_first_step,
     bsz, beam_width = state.log_probs.shape
     onehot_eos = paddle.cast(
         nn.functional.one_hot(paddle.ones([1], 'int64') * eos_id, vocab_size),
-        'int64')  #[1, V]
+        'int64')  # [1, V]
 
-    probs = paddle.log(nn.functional.softmax(logits))  #[B*W, V]
-    probs = mask_prob(probs, onehot_eos, state.finished)  #[B*W, V]
-    allprobs = paddle.reshape(state.log_probs, [-1, 1]) + probs  #[B*W, V]
+    probs = paddle.log(nn.functional.softmax(logits))  # [B*W, V]
+    probs = mask_prob(probs, onehot_eos, state.finished)  # [B*W, V]
+    allprobs = paddle.reshape(state.log_probs, [-1, 1]) + probs  # [B*W, V]
 
-    not_finished = 1 - paddle.reshape(state.finished, [-1, 1])  #[B*W,1]
+    not_finished = 1 - paddle.reshape(state.finished, [-1, 1])  # [B*W,1]
     not_eos = 1 - onehot_eos
-    length_to_add = not_finished * not_eos  #[B*W,V]
+    length_to_add = not_finished * not_eos  # [B*W,V]
     alllen = paddle.reshape(state.lengths, [-1, 1]) + length_to_add
 
     allprobs = paddle.reshape(allprobs, [-1, beam_width * vocab_size])
@@ -175,8 +175,8 @@ def beam_search_step(state, logits, eos_id, beam_width, is_first_step,
         allscore = paddle.reshape(
             allscore,
             [bsz, beam_width, -1])[:, 0, :]  # first step only consiter beam 0
-    scores, idx = paddle.topk(allscore, k=beam_width)  #[B, W]
-    next_beam_id = idx // vocab_size  #[B, W]
+    scores, idx = paddle.topk(allscore, k=beam_width)  # [B, W]
+    next_beam_id = idx // vocab_size  # [B, W]
     next_word_id = idx % vocab_size
 
     gather_idx = paddle.concat(
@@ -191,7 +191,7 @@ def beam_search_step(state, logits, eos_id, beam_width, is_first_step,
     ], 1)
     next_finished = paddle.reshape(
         paddle.gather_nd(state.finished, gather_idx),
-        state.finished.shape)  #[gather new beam state according to new beam id]
+        state.finished.shape)  # [gather new beam state according to new beam id]
 
     next_finished += paddle.cast(next_word_id == eos_id, 'int64')
     next_finished = paddle.cast(next_finished > 0, 'int64')
@@ -251,14 +251,14 @@ def beam_search_infilling(model,
 
     token_ids = tile_(token_ids, beam_width)
     seqlen = paddle.sum(paddle.cast(token_ids != 0, 'int64'), 1, keepdim=True)
-    #log.debug(token_ids.shape)
+    # log.debug(token_ids.shape)
 
     cls_ids = paddle.ones([d_batch * beam_width], dtype='int64') * sos_id
     attn_ids = paddle.ones(
         [d_batch * beam_width], dtype='int64') * attn_id  # SOS
     ids = paddle.stack([cls_ids, attn_ids], -1)
     for step in range(max_decode_len):
-        #log.debug('decode step %d' % step)
+        # log.debug('decode step %d' % step)
         bias = gen_bias(token_ids, ids, step)
         pos_ids = paddle.to_tensor(
             np.tile(
@@ -311,7 +311,7 @@ def beam_search_infilling(model,
     final_ids = paddle.stack([o.predicted_ids for o in outputs], 0)
     final_parent_ids = paddle.stack([o.beam_parent_ids for o in outputs], 0)
     final_ids = nn.functional.gather_tree(
-        final_ids, final_parent_ids)[:, :, 0]  #pick best beam
+        final_ids, final_parent_ids)[:, :, 0]  # pick best beam
     final_ids = paddle.transpose(
         paddle.reshape(final_ids, [-1, d_batch * 1]), [1, 0])
 

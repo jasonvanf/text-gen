@@ -150,8 +150,7 @@ def train():
 
     train_dataset, dev_dataset = load_dataset(
         'poetry', splits=('train', 'dev'), lazy=False)
-    attn_id = tokenizer.vocab[
-        '[ATTN]'] if '[ATTN]' in tokenizer.vocab else tokenizer.vocab['[MASK]']
+    attn_id = tokenizer.vocab['[ATTN]'] if '[ATTN]' in tokenizer.vocab else tokenizer.vocab['[MASK]']
     tgt_type_id = model.sent_emb.weight.shape[0] - 1
 
     trans_func = convert_example(
